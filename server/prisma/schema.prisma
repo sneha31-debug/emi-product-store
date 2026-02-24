@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  variant     String    // e.g. "256GB"
+  color       String    // e.g. "Silver"
+  mrp         Float
+  price       Float
+  imageUrl    String
+  emiPlans    EMIPlan[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model EMIPlan {
+  id            Int      @id @default(autoincrement())
+  monthlyAmount Float
+  tenure        Int      // in months
+  interestRate  Float
+  cashback      Float    @default(0)
+  productId     Int
+  product       Product  @relation(fields: [productId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

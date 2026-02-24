@@ -1,0 +1,13 @@
+{
+    "name": "emi-product-store-root",
+    "private": true,
+    "scripts": {
+        "install:client": "npm install --prefix client",
+        "install:server": "npm install --prefix server",
+        "build:client": "npm run build --prefix client",
+        "build:server": "npm run build --prefix server",
+        "start:server": "npm start --prefix server",
+        "build": "npm run build:client",
+        "postinstall": "npm run install:client && npm run install:server"
+    }
+}

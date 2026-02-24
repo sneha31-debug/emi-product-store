@@ -16,4 +16,11 @@ export interface Product {
     price: number;
     imageUrl: string;
     emiPlans: EMIPlan[];
+    variants?: {
+        id: number;
+        variant: string;
+        color: string;
+        price: number;
+        imageUrl: string;
+    }[];
 }

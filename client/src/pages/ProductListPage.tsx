@@ -4,7 +4,6 @@ import { fetchProducts } from '../api';
 import type { Product } from '../types';
 import { Star, Package } from 'lucide-react';
 
-// Group products by their base name — show one card per product family
 function groupProductsByName(products: Product[]): Product[] {
     const seen = new Set<string>();
     return products.filter(p => {
@@ -54,7 +53,6 @@ const ProductListPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#f1f3f6] pb-16">
-            {/* Hero Section */}
             <div className="bg-gradient-to-r from-[#171b1f] to-[#2c3e50] text-white py-16 mb-8">
                 <div className="max-w-[1248px] mx-auto px-4">
                     <div className="max-w-2xl">
@@ -70,7 +68,6 @@ const ProductListPage: React.FC = () => {
             </div>
 
             <div className="max-w-[1248px] mx-auto px-4">
-                {/* Stats / Info bar */}
                 <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 leading-none">Featured Collections</h2>
@@ -82,7 +79,6 @@ const ProductListPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Listing Section */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
                     {grouped.map((product) => {
                         const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
@@ -97,33 +93,26 @@ const ProductListPage: React.FC = () => {
                                 to={`/${product.name.toLowerCase().replace(/ /g, '-')}-${product.brand.toLowerCase()}/${product.slug}`}
                                 className="flex flex-col group bg-white rounded-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 border border-transparent hover:border-gray-100 relative group"
                             >
-                                {/* Discount Badge */}
                                 {discount > 0 && (
                                     <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
                                         {discount}% OFF
                                     </div>
                                 )}
 
-                                {/* Product Image Container */}
                                 <div className="h-64 w-full bg-[#f8f9fa] flex items-center justify-center p-8 overflow-hidden relative">
                                     <img
                                         src={product.imageUrls[0]}
                                         alt={product.name}
                                         className="h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-in-out"
                                     />
-
-                                    {/* Overlay */}
                                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                                    {/* Variant Count Tag */}
                                     {count > 1 && (
                                         <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-[#2874f0] text-[10px] font-bold px-3 py-1 rounded-full border border-blue-50 shadow-sm">
                                             {count} Options
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Details */}
                                 <div className="p-6 flex flex-col flex-1">
                                     <div className="mb-2">
                                         <p className="text-[10px] text-[#2874f0] font-black uppercase tracking-widest mb-1">{product.brand}</p>
@@ -157,7 +146,6 @@ const ProductListPage: React.FC = () => {
                                         )}
                                     </div>
 
-                                    {/* Action button (Visual only) */}
                                     <div className="mt-6 flex items-center justify-center border-2 border-[#2874f0] text-[#2874f0] font-black text-xs py-3 rounded-xl opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500 uppercase tracking-widest bg-white">
                                         Explore Device
                                     </div>

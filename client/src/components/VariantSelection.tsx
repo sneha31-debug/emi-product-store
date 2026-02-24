@@ -48,7 +48,6 @@ const VariantSelection: React.FC<VariantSelectionProps> = ({
 
     return (
         <div className="space-y-6">
-            {/* Color Selection */}
             <div>
                 <h4 className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">Color:</h4>
                 <div className="flex flex-wrap gap-3">
@@ -70,7 +69,6 @@ const VariantSelection: React.FC<VariantSelectionProps> = ({
                 </div>
             </div>
 
-            {/* Storage Selection */}
             {storages.length > 1 && (
                 <div>
                     <h4 className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wider">Storage:</h4>

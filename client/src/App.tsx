@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import Navbar from './components/Navbar';
 import ProductListPage from './pages/ProductListPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 
@@ -7,12 +6,9 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen" style={{ backgroundColor: '#f1f3f6' }}>
-        {/* <Navbar /> */}
         <Routes>
           <Route path="/" element={<ProductListPage />} />
-          {/* New brand-inclusive route format: /:product-family-:brand/:slug */}
           <Route path="/:category/:slug" element={<ProductDetailPage />} />
-          {/* Fallback 404 */}
           <Route path="*" element={
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6">
               <h1 className="text-6xl font-black text-gray-200 mb-4">404</h1>

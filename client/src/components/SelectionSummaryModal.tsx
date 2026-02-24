@@ -18,15 +18,11 @@ const SelectionSummaryModal: React.FC<SelectionSummaryModalProps> = ({ isOpen, o
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/50"
                 onClick={onClose}
             />
-
-            {/* Modal Content */}
             <div className="relative w-full max-w-lg bg-white rounded-sm shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <h2 className="text-lg font-bold text-gray-800">Order Summary</h2>
                     <button
@@ -38,7 +34,6 @@ const SelectionSummaryModal: React.FC<SelectionSummaryModalProps> = ({ isOpen, o
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    {/* Product Brief */}
                     <div className="flex gap-4 border-b border-gray-50 pb-6">
                         <div className="w-16 h-16 border border-gray-100 rounded-sm p-2 flex items-center justify-center shrink-0">
                             <img src={product.imageUrls[0]} alt={product.name} className="h-full object-contain" />
@@ -50,7 +45,6 @@ const SelectionSummaryModal: React.FC<SelectionSummaryModalProps> = ({ isOpen, o
                         </div>
                     </div>
 
-                    {/* EMI Plan Segment */}
                     <div className="space-y-4">
                         <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Plan Highlights</h3>
                         <div className="grid grid-cols-2 gap-4">
@@ -73,7 +67,6 @@ const SelectionSummaryModal: React.FC<SelectionSummaryModalProps> = ({ isOpen, o
                         </div>
                     </div>
 
-                    {/* Final Billing */}
                     <div className="space-y-3 bg-gray-50 p-6 rounded-sm border border-gray-200">
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Regular Price (Total)</span>
@@ -94,7 +87,6 @@ const SelectionSummaryModal: React.FC<SelectionSummaryModalProps> = ({ isOpen, o
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="px-6 py-6 border-t border-gray-100 bg-white">
                     <button
                         onClick={onClose}

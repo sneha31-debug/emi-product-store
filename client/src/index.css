@@ -2,14 +2,11 @@
 
 @layer base {
   :root {
-    /* Flipkart-inspired Palette */
     --color-bg: #f1f3f6;
     --color-surface: #ffffff;
     --color-primary: #2874f0;
-    /* Flipkart Blue */
     --color-primary-dark: #1254c7;
     --color-accent: #fb641b;
-    /* Flipkart Orange */
     --color-success: #388e3c;
     --color-text: #212121;
     --color-text-muted: #878787;
@@ -34,7 +31,7 @@
     color: var(--color-text);
   }
 
-  /* Custom scrollbar */
+
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -53,7 +50,7 @@
     background: #a1a1a1;
   }
 
-  /* Utilities */
+
   .shadow-flip {
     box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .16);
   }

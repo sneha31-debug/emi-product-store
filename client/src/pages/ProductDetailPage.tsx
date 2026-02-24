@@ -21,9 +21,6 @@ const ProductDetailPage: React.FC = () => {
 
     useEffect(() => {
         if (!slug) return;
-
-        // Only show the full page spinner on initial load or brand change
-        // If the product family (name) stays same, we do a "soft" load
         const isBrandNewProduct = !product || (product.slug !== slug && product.name.split(' ')[0] !== slug.split('-')[0]);
 
         if (isBrandNewProduct) {
@@ -32,15 +29,11 @@ const ProductDetailPage: React.FC = () => {
 
         fetchProductBySlug(slug)
             .then(data => {
-                // If it's a variant of the SAME color, preserve the active image index
-                // Note: We check if the image sets are effectively the same
+              
                 setProduct(prev => {
                     if (prev && prev.color === data.color) {
-                        // Keep current active index if it's within bounds of new product images
-                        // This ensures that if I'm on image 2, I stay on image 2 when storage changes
                         return data;
                     }
-                    // Reset index for different color/product
                     setActiveImageIndex(0);
                     return data;
                 });
@@ -85,7 +78,6 @@ const ProductDetailPage: React.FC = () => {
         <div className="bg-white min-h-screen pb-20">
             <div className="max-w-[1248px] mx-auto px-4 py-4">
 
-                {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <button onClick={() => navigate('/')} className="hover:text-[#2874f0]">Home</button>
                     <ChevronRight size={12} />
@@ -96,7 +88,6 @@ const ProductDetailPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                    {/* Left: Image Container */}
                     <div className="lg:col-span-5">
                         <div className="bg-white border border-gray-100 rounded-sm p-4 sticky top-24">
                             <div className="relative aspect-square flex items-center justify-center mb-4 group">
@@ -124,7 +115,6 @@ const ProductDetailPage: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Image Indicators / Thumbnails */}
                             <div className="flex justify-center gap-2 mb-8">
                                 {product.imageUrls.map((_, idx) => (
                                     <button
@@ -135,7 +125,6 @@ const ProductDetailPage: React.FC = () => {
                                 ))}
                             </div>
 
-                            {/* Actions */}
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setShowSummary(true)}
@@ -147,7 +136,6 @@ const ProductDetailPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Right: Product Info */}
                     <div className="lg:col-span-7">
                         <section className="mb-6">
                             <h1 className="text-xl font-medium text-gray-900 mb-2">{product.name} ({product.variant}, {product.color})</h1>
@@ -173,7 +161,6 @@ const ProductDetailPage: React.FC = () => {
                             <p className="text-sm font-bold text-[#2874f0] mb-6">Inclusive of all taxes</p>
                         </section>
 
-                        {/* Variant Picker */}
                         <section className="mb-8 p-4 border border-gray-100 rounded-sm bg-gray-50/50">
                             <VariantSelection
                                 currentProductId={product.id}
@@ -184,7 +171,6 @@ const ProductDetailPage: React.FC = () => {
                             />
                         </section>
 
-                        {/* Tabs content */}
                         <div className="border border-gray-100 rounded-sm overflow-hidden">
                             <div className="flex bg-gray-50 border-b border-gray-100">
                                 {(['plans', 'overview', 'specs'] as const).map(tab => (

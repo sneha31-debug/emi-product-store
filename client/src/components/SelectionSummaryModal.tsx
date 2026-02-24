@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Wallet, Calendar, Percent, Gift, ShieldCheck } from 'lucide-react';
+import { X, Gift, ShieldCheck } from 'lucide-react';
 import type { Product, EMIPlan } from '../types';
 
 interface SelectionSummaryModalProps {

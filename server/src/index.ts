@@ -37,7 +37,7 @@ app.get('/api/products/slug/:slug', async (req: Request, res: Response) => {
         }
         const variants = await prisma.product.findMany({
             where: { name: product.name },
-            select: { id: true, slug: true, variant: true, color: true, price: true, imageUrl: true },
+            select: { id: true, slug: true, variant: true, color: true, price: true, imageUrls: true },
             orderBy: { id: 'asc' },
         });
 
@@ -86,7 +86,7 @@ app.get('/api/products/:id', async (req: Request, res: Response) => {
 
         const variants = await prisma.product.findMany({
             where: { name: product.name },
-            select: { id: true, slug: true, variant: true, color: true, price: true, imageUrl: true },
+            select: { id: true, slug: true, variant: true, color: true, price: true, imageUrls: true },
             orderBy: { id: 'asc' },
         });
 

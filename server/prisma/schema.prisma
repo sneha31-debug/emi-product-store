@@ -9,11 +9,15 @@ datasource db {
 model Product {
   id          Int       @id @default(autoincrement())
   name        String
+  slug        String    @unique
+  brand       String
   variant     String    // e.g. "256GB"
   color       String    // e.g. "Silver"
   mrp         Float
   price       Float
-  imageUrl    String
+  imageUrls   String[]
+  description String    @default("")
+  highlights  String[]  // Array of highlight strings
   emiPlans    EMIPlan[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

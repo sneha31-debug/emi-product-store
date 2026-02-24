@@ -1,9 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { fetchProducts } from '../api';
 import type { Product } from '../types';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { Star, Package } from 'lucide-react';
+
+// Group products by their base name — show one card per product family
+function groupProductsByName(products: Product[]): Product[] {
+    const seen = new Set<string>();
+    return products.filter(p => {
+        if (seen.has(p.name)) return false;
+        seen.add(p.name);
+        return true;
+    });
+}
+
+
 
 const ProductListPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -21,124 +32,151 @@ const ProductListPage: React.FC = () => {
             });
     }, []);
 
+    const grouped = useMemo(() => groupProductsByName(products), [products]);
+
+    const variantCounts = useMemo(() => {
+        const map: Record<string, number> = {};
+        products.forEach(p => { map[p.name] = (map[p.name] || 0) + 1; });
+        return map;
+    }, [products]);
+
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="flex flex-col items-center">
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                        className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full"
-                    />
-                    <p className="mt-4 font-bold text-slate-400 uppercase tracking-widest text-xs">Loading Store...</p>
+            <div className="max-w-[1248px] mx-auto px-4 py-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[...Array(8)].map((_, i) => (
+                        <div key={i} className="bg-white rounded-xl h-[420px] animate-pulse border border-gray-100 shadow-sm" />
+                    ))}
                 </div>
             </div>
         );
     }
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        show: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        show: { opacity: 1, y: 0 }
-    };
-
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 p-6 md:p-12 selection:bg-indigo-100">
-            <header className="max-w-7xl mx-auto mb-16 relative">
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="relative z-10"
-                >
-                    <div className="flex items-center space-x-2 mb-4">
-                        <span className="bg-indigo-600 text-white p-1 rounded-md">
-                            <Sparkles size={16} />
-                        </span>
-                        <span className="text-indigo-600 font-black uppercase tracking-tighter text-sm">New Collection 2026</span>
+        <div className="min-h-screen bg-[#f1f3f6] pb-16">
+            {/* Hero Section */}
+            <div className="bg-gradient-to-r from-[#171b1f] to-[#2c3e50] text-white py-16 mb-8">
+                <div className="max-w-[1248px] mx-auto px-4">
+                    <div className="max-w-2xl">
+                        <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+                            Premium <span className="text-[#ffe500]">Smartphones</span>
+                        </h1>
+                        <p className="text-gray-300 text-lg md:text-xl font-medium leading-relaxed">
+                            Discover the latest flagship devices with exclusive <span className="text-white font-bold">MF-Collateral EMI plans</span>.
+                            Your next upgrade is just a tap away.
+                        </p>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9]">
-                        The Future <br />
-                        <span className="text-indigo-600">On Installments.</span>
-                    </h1>
-                    <p className="mt-6 text-slate-500 text-lg max-w-md font-medium leading-relaxed">
-                        Premium smartphones backed by secure Mutual Fund EMI plans. Zero down payment on select models.
-                    </p>
-                </motion.div>
+                </div>
+            </div>
 
-                {/* Decorative elements */}
-                <div className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-200/30 blur-3xl rounded-full"></div>
-                <div className="absolute top-40 -left-10 w-48 h-48 bg-purple-200/20 blur-3xl rounded-full"></div>
-            </header>
+            <div className="max-w-[1248px] mx-auto px-4">
+                {/* Stats / Info bar */}
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900 leading-none">Featured Collections</h2>
+                        <p className="text-sm text-gray-500 mt-1 font-medium">Curated high-end tech for your lifestyle</p>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                        <Package size={16} className="text-[#2874f0]" />
+                        <span className="text-sm font-bold text-gray-700">{grouped.length} Unique Models</span>
+                    </div>
+                </div>
 
-            <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
-            >
-                {products.map(product => (
-                    <motion.div key={product.id} variants={itemVariants}>
-                        <Link
-                            to={`/products/${product.id}`}
-                            className="group bg-white rounded-[40px] overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-slate-100 flex flex-col h-full"
-                        >
-                            <div className="relative aspect-[4/5] overflow-hidden bg-slate-100 m-4 rounded-[32px]">
-                                <img
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                {/* Listing Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8">
+                    {grouped.map((product) => {
+                        const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
+                        const minEmi = product.emiPlans.length > 0
+                            ? Math.min(...product.emiPlans.map(p => p.monthlyAmount))
+                            : null;
+                        const count = variantCounts[product.name] || 1;
 
-                                <div className="absolute top-4 left-4 flex flex-col space-y-2">
-                                    <span className="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black text-indigo-700 uppercase tracking-widest border border-white/50 shadow-sm w-fit">
-                                        {product.variant}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="px-8 pb-8 pt-2 flex flex-col flex-grow">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h2 className="text-2xl font-black tracking-tight leading-none group-hover:text-indigo-600 transition-colors">
-                                        {product.name}
-                                    </h2>
-                                </div>
-
-                                <p className="text-slate-400 text-sm font-bold flex items-center mb-6 uppercase tracking-tighter">
-                                    <span className="w-2 h-2 rounded-full mr-2 ring-4 ring-slate-100" style={{ backgroundColor: product.color.toLowerCase().split(' ').pop() }}></span>
-                                    {product.color}
-                                </p>
-
-                                <div className="mt-auto flex items-end justify-between">
-                                    <div>
-                                        <p className="text-slate-300 line-through text-xs font-bold mb-1 ml-1">₹{product.mrp.toLocaleString()}</p>
-                                        <p className="text-3xl font-black text-slate-900 leading-none tracking-tighter">₹{product.price.toLocaleString()}</p>
+                        return (
+                            <Link
+                                key={product.id}
+                                to={`/${product.name.toLowerCase().replace(/ /g, '-')}-${product.brand.toLowerCase()}/${product.slug}`}
+                                className="flex flex-col group bg-white rounded-2xl overflow-hidden hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 border border-transparent hover:border-gray-100 relative group"
+                            >
+                                {/* Discount Badge */}
+                                {discount > 0 && (
+                                    <div className="absolute top-4 left-4 z-10 bg-red-500 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-lg transform group-hover:scale-110 transition-transform">
+                                        {discount}% OFF
                                     </div>
-                                    <div className="bg-slate-900 text-white w-12 h-12 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-slate-200">
-                                        <ArrowRight size={20} />
-                                    </div>
+                                )}
+
+                                {/* Product Image Container */}
+                                <div className="h-64 w-full bg-[#f8f9fa] flex items-center justify-center p-8 overflow-hidden relative">
+                                    <img
+                                        src={product.imageUrls[0]}
+                                        alt={product.name}
+                                        className="h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                                    />
+
+                                    {/* Overlay */}
+                                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                    {/* Variant Count Tag */}
+                                    {count > 1 && (
+                                        <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-[#2874f0] text-[10px] font-bold px-3 py-1 rounded-full border border-blue-50 shadow-sm">
+                                            {count} Options
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div className="mt-6 pt-6 border-t border-slate-50 flex items-center">
-                                    <div className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-                                        ₹{Math.min(...product.emiPlans.map(p => p.monthlyAmount)).toLocaleString()}/mo
+                                {/* Details */}
+                                <div className="p-6 flex flex-col flex-1">
+                                    <div className="mb-2">
+                                        <p className="text-[10px] text-[#2874f0] font-black uppercase tracking-widest mb-1">{product.brand}</p>
+                                        <h3 className="font-bold text-gray-900 text-lg leading-tight group-hover:text-[#2874f0] transition-colors line-clamp-1">
+                                            {product.name}
+                                        </h3>
                                     </div>
-                                    <span className="ml-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Starting Price</span>
+
+                                    <div className="flex items-center gap-1.5 mb-4">
+                                        <div className="flex items-center gap-0.5 bg-[#388e3c] text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
+                                            <span>4.8</span>
+                                            <Star size={10} className="fill-white" />
+                                        </div>                  
+                                    </div>
+
+                                    <div className="mt-auto">
+                                        <div className="flex items-baseline gap-2 mb-1">
+                                            <span className="font-black text-xl text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
+                                            <span className="text-sm text-gray-400 line-through font-medium">₹{product.mrp.toLocaleString('en-IN')}</span>
+                                        </div>
+
+                                        {minEmi && (
+                                            <div className="bg-blue-50 rounded-lg px-3 py-2 border border-blue-100/50">
+                                                <div className="text-[11px] text-gray-500 font-bold uppercase tracking-tighter">
+                                                    Lowest EMI
+                                                </div>
+                                                <div className="text-sm font-black text-[#2874f0]">
+                                                    ₹{minEmi.toLocaleString('en-IN')}<span className="text-[11px] font-bold text-gray-400">/mo*</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Action button (Visual only) */}
+                                    <div className="mt-6 flex items-center justify-center border-2 border-[#2874f0] text-[#2874f0] font-black text-xs py-3 rounded-xl opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500 uppercase tracking-widest bg-white">
+                                        Explore Device
+                                    </div>
                                 </div>
-                            </div>
-                        </Link>
-                    </motion.div>
-                ))}
-            </motion.div>
+                            </Link>
+                        );
+                    })}
+                </div>
+
+                {grouped.length === 0 && (
+                    <div className="py-32 text-center bg-white rounded-3xl shadow-sm border border-gray-100">
+                        <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Package size={40} className="text-gray-300" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Device Library Empty</h3>
+                        <p className="text-gray-500 font-medium">We're updating our collection. Please check back soon.</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

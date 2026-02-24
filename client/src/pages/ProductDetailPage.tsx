@@ -1,61 +1,77 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { fetchProductById } from '../api';
-import type { Product, EMIPlan } from '../types';
-import { ArrowLeft, ShieldCheck, Zap, Info, Share2, Heart, CheckCircle2 } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+    Star, ShieldCheck, Zap, Package, RefreshCcw,
+    ChevronRight, Info, ChevronLeft
+} from 'lucide-react';
 import SelectionSummaryModal from '../components/SelectionSummaryModal';
 import VariantSelection from '../components/VariantSelection';
+import { fetchProductBySlug } from '../api';
+import type { Product, EMIPlan } from '../types';
 
 const ProductDetailPage: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+    const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
     const [product, setProduct] = useState<Product | null>(null);
-    const [selectedPlan, setSelectedPlan] = useState<EMIPlan | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'plans' | 'overview' | 'specs'>('plans');
+    const [selectedPlan, setSelectedPlan] = useState<EMIPlan | null>(null);
+    const [showSummary, setShowSummary] = useState(false);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
 
     useEffect(() => {
-        if (id) {
-            setLoading(true);
-            fetchProductById(id)
-                .then(data => {
-                    setProduct(data);
-                    if (data.emiPlans.length > 0) {
-                        setSelectedPlan(data.emiPlans[0]);
-                    }
-                    setLoading(false);
-                    // Scroll to top on navigation
-                    window.scrollTo(0, 0);
-                })
-                .catch(err => {
-                    console.error(err);
-                    setLoading(false);
-                });
-        }
-    }, [id]);
+        if (!slug) return;
 
-    if (loading) {
+        // Only show the full page spinner on initial load or brand change
+        // If the product family (name) stays same, we do a "soft" load
+        const isBrandNewProduct = !product || (product.slug !== slug && product.name.split(' ')[0] !== slug.split('-')[0]);
+
+        if (isBrandNewProduct) {
+            setLoading(true);
+        }
+
+        fetchProductBySlug(slug)
+            .then(data => {
+                // If it's a variant of the SAME color, preserve the active image index
+                // Note: We check if the image sets are effectively the same
+                setProduct(prev => {
+                    if (prev && prev.color === data.color) {
+                        // Keep current active index if it's within bounds of new product images
+                        // This ensures that if I'm on image 2, I stay on image 2 when storage changes
+                        return data;
+                    }
+                    // Reset index for different color/product
+                    setActiveImageIndex(0);
+                    return data;
+                });
+
+                setLoading(false);
+                if (data.emiPlans.length > 0) {
+                    setSelectedPlan(data.emiPlans[0]);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                setLoading(false);
+            });
+    }, [slug]);
+
+    if (loading && !product) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <motion.div
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center"
-                >
-                    <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                </motion.div>
+            <div className="min-h-screen bg-[#f1f3f6] flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
             </div>
         );
     }
 
     if (!product) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6">
-                <h2 className="text-2xl font-bold text-slate-900">Product Not Found</h2>
+            <div className="min-h-screen bg-[#f1f3f6] flex flex-col items-center justify-center p-4">
+                <Package size={64} className="text-gray-200 mb-4" />
+                <h1 className="text-xl font-bold text-gray-800 mb-2">Product Not Found</h1>
                 <button
                     onClick={() => navigate('/')}
-                    className="mt-4 px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold shadow-lg shadow-slate-200"
+                    className="mt-4 px-6 py-2 bg-[#2874f0] text-white font-bold rounded-sm"
                 >
                     Go Back Home
                 </button>
@@ -63,187 +79,208 @@ const ProductDetailPage: React.FC = () => {
         );
     }
 
+    const discount = Math.round(((product.mrp - product.price) / product.mrp) * 100);
+
     return (
-        <div className="min-h-screen bg-white text-slate-900 selection:bg-indigo-100 pb-20">
-            {/* Navigation */}
-            <nav className="p-6 max-w-7xl mx-auto flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-30 border-b border-slate-50">
-                <Link to="/" className="flex items-center text-slate-500 hover:text-indigo-600 transition-colors font-bold group">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-50 group-hover:bg-indigo-50 transition-colors mr-3">
-                        <ArrowLeft size={20} />
-                    </div>
-                    Back to Catalog
-                </Link>
-                <div className="flex items-center space-x-2">
-                    <button className="p-2.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all">
-                        <Heart size={20} />
-                    </button>
-                    <button className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all">
-                        <Share2 size={20} />
-                    </button>
+        <div className="bg-white min-h-screen pb-20">
+            <div className="max-w-[1248px] mx-auto px-4 py-4">
+
+                {/* Breadcrumbs */}
+                <div className="flex items-center gap-2 text-[11px] text-gray-500 mb-4 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                    <button onClick={() => navigate('/')} className="hover:text-[#2874f0]">Home</button>
+                    <ChevronRight size={12} />
+                    <span>{product.brand}</span>
+                    <ChevronRight size={12} />
+                    <span className="text-gray-900 font-medium">{product.name}</span>
                 </div>
-            </nav>
 
-            <main className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-16">
-                {/* Left: Image Container */}
-                <div className="lg:col-span-7">
-                    <div className="sticky top-28 space-y-6">
-                        <motion.div
-                            key={product.id}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="bg-slate-50 rounded-[64px] overflow-hidden aspect-square flex items-center justify-center p-16 border border-slate-100 group shadow-inner"
-                        >
-                            <motion.img
-                                src={product.imageUrl}
-                                alt={product.name}
-                                className="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 hover:scale-105"
-                            />
-                        </motion.div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-                        <div className="flex gap-4">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="flex-1 aspect-square bg-slate-50 rounded-3xl border border-slate-100 p-4 opacity-40 grayscale hover:opacity-100 hover:grayscale-0 transition-all cursor-pointer">
-                                    <img src={product.imageUrl} className="w-full h-full object-contain mix-blend-multiply" alt="Gallery" />
+                    {/* Left: Image Container */}
+                    <div className="lg:col-span-5">
+                        <div className="bg-white border border-gray-100 rounded-sm p-4 sticky top-24">
+                            <div className="relative aspect-square flex items-center justify-center mb-4 group">
+                                <img
+                                    src={product.imageUrls[activeImageIndex]}
+                                    alt={product.name}
+                                    className="h-full object-contain transition-all duration-300"
+                                />
+
+                                {product.imageUrls.length > 1 && (
+                                    <>
+                                        <button
+                                            onClick={() => setActiveImageIndex((prev) => (prev === 0 ? product.imageUrls.length - 1 : prev - 1))}
+                                            className="absolute left-0 top-1/2 -translate-y-1/2 bg-white/80 shadow-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <ChevronLeft size={20} />
+                                        </button>
+                                        <button
+                                            onClick={() => setActiveImageIndex((prev) => (prev === product.imageUrls.length - 1 ? 0 : prev + 1))}
+                                            className="absolute right-0 top-1/2 -translate-y-1/2 bg-white/80 shadow-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Image Indicators / Thumbnails */}
+                            <div className="flex justify-center gap-2 mb-8">
+                                {product.imageUrls.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setActiveImageIndex(idx)}
+                                        className={`w-2.5 h-2.5 rounded-full border transition-all ${activeImageIndex === idx ? 'bg-[#2874f0] border-[#2874f0] w-6' : 'bg-gray-200 border-gray-300'}`}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowSummary(true)}
+                                    className="flex-1 bg-[#fb641b] text-white py-4 font-bold rounded-sm shadow-sm hover:bg-[#f4511e] transition-colors flex items-center justify-center gap-2 uppercase tracking-wide"
+                                >
+                                    <Zap size={18} /> Buy Now on EMI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Product Info */}
+                    <div className="lg:col-span-7">
+                        <section className="mb-6">
+                            <h1 className="text-xl font-medium text-gray-900 mb-2">{product.name} ({product.variant}, {product.color})</h1>
+
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="flex items-center gap-1 bg-[#388e3c] text-white text-[12px] font-bold px-1.5 py-0.5 rounded-sm">
+                                    <span>4.8</span>
+                                    <Star size={12} className="fill-white" />
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                                <span className="text-sm font-medium text-gray-500">12,450 Ratings & 1,562 Reviews</span>
+                            </div>
 
-                {/* Right: Product Details & Options */}
-                <div className="lg:col-span-5 flex flex-col">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        <div className="flex items-center space-x-2 mb-6">
-                            <span className="bg-indigo-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-                                Exclusive
-                            </span>
-                            <span className="bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-100 flex items-center">
-                                <ShieldCheck size={12} className="mr-1.5" />
-                                Authored by 1Fi
-                            </span>
-                        </div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className="text-2xl font-bold text-gray-900">₹{product.price.toLocaleString('en-IN')}</span>
+                                {product.mrp > product.price && (
+                                    <>
+                                        <span className="text-base text-gray-500 line-through">₹{product.mrp.toLocaleString('en-IN')}</span>
+                                        <span className="text-sm font-bold text-[#388e3c]">{discount}% off</span>
+                                    </>
+                                )}
+                            </div>
 
-                        <h1 className="text-5xl md:text-6xl font-black tracking-tighter leading-[0.9] mb-8">{product.name}</h1>
+                            <p className="text-sm font-bold text-[#2874f0] mb-6">Inclusive of all taxes</p>
+                        </section>
 
-                        {/* Variant Selection (Storage & Color) */}
-                        {product.variants && (
+                        {/* Variant Picker */}
+                        <section className="mb-8 p-4 border border-gray-100 rounded-sm bg-gray-50/50">
                             <VariantSelection
                                 currentProductId={product.id}
-                                variants={product.variants}
+                                currentSlug={product.slug}
+                                variants={product.variants || []}
+                                productFamily={product.name}
+                                brand={product.brand}
                             />
-                        )}
+                        </section>
 
-                        <div className="flex items-end space-x-4 mb-12">
-                            <span className="text-5xl font-black text-slate-900 tracking-tighter leading-none">₹{product.price.toLocaleString()}</span>
-                            <div className="flex flex-col mb-1">
-                                <span className="text-lg text-slate-300 line-through font-bold leading-none mb-1">₹{product.mrp.toLocaleString()}</span>
-                                <span className="text-emerald-500 font-black text-xs uppercase tracking-wider">
-                                    You Save ₹{(product.mrp - product.price).toLocaleString()}
-                                </span>
+                        {/* Tabs content */}
+                        <div className="border border-gray-100 rounded-sm overflow-hidden">
+                            <div className="flex bg-gray-50 border-b border-gray-100">
+                                {(['plans', 'overview', 'specs'] as const).map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        className={`px-8 py-4 text-sm font-bold transition-colors ${activeTab === tab
+                                            ? 'text-[#2874f0] bg-white border-b-2 border-[#2874f0]'
+                                            : 'text-gray-500 hover:text-[#2874f0]'
+                                            }`}
+                                    >
+                                        {tab === 'plans' ? 'EMI Plans' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                    </button>
+                                ))}
                             </div>
-                        </div>
-                    </motion.div>
 
-                    {/* EMI Strategy Section */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="mb-10"
-                    >
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-2xl font-black tracking-tight flex items-center">
-                                EMI Strategy
-                                <Info size={18} className="ml-2 text-slate-300 hover:text-indigo-400 cursor-help transition-colors" />
-                            </h3>
-                            <div className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl uppercase tracking-widest border border-indigo-100">
-                                Mutual Fund Backed
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            {product.emiPlans.map((plan, index) => (
-                                <button
-                                    key={plan.id}
-                                    onClick={() => setSelectedPlan(plan)}
-                                    className={`w-full text-left p-6 rounded-[32px] border-2 transition-all relative overflow-hidden group ${selectedPlan?.id === plan.id
-                                            ? 'border-indigo-600 bg-indigo-50/30 ring-[6px] ring-indigo-50 shadow-md'
-                                            : 'border-slate-100 bg-white hover:border-slate-300'
-                                        }`}
-                                >
-                                    <div className="flex justify-between items-center relative z-10">
-                                        <div>
-                                            <div className="flex items-baseline mb-2">
-                                                <span className="text-3xl font-black pr-2 tracking-tighter">₹{plan.monthlyAmount.toLocaleString()}</span>
-                                                <span className="text-slate-400 font-bold text-sm tracking-tight">/ month</span>
-                                            </div>
-                                            <div className="flex items-center space-x-3 text-[10px] font-black uppercase tracking-widest">
-                                                <span className="text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200/50">
-                                                    {plan.tenure} Months
-                                                </span>
-                                                <span className={`${plan.interestRate === 0 ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                                    {plan.interestRate === 0 ? 'Zero Cost' : `${plan.interestRate}% Interest`}
-                                                </span>
-                                            </div>
+                            <div className="p-6">
+                                {activeTab === 'plans' && (
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {product.emiPlans.map(plan => (
+                                                <button
+                                                    key={plan.id}
+                                                    onClick={() => setSelectedPlan(plan)}
+                                                    className={`p-4 border rounded-sm text-left transition-all flex items-center justify-between ${selectedPlan?.id === plan.id
+                                                        ? 'bg-blue-50 border-[#2874f0] ring-1 ring-[#2874f0]'
+                                                        : 'bg-white border-gray-200 hover:border-gray-300'
+                                                        }`}
+                                                >
+                                                    <div>
+                                                        <div className="text-[10px] font-bold text-[#2874f0] uppercase mb-1">{plan.tenure} Months Plan</div>
+                                                        <div className="text-lg font-bold text-gray-900">₹{plan.monthlyAmount.toLocaleString('en-IN')}/mo</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xs font-medium text-gray-500">Interest: {plan.interestRate}% pa</div>
+                                                        {plan.cashback > 0 && <div className="text-xs font-bold text-[#388e3c]">₹{plan.cashback} Cashback</div>}
+                                                    </div>
+                                                </button>
+                                            ))}
                                         </div>
-
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${selectedPlan?.id === plan.id
-                                                ? 'bg-indigo-600 text-white scale-110 shadow-lg shadow-indigo-100'
-                                                : 'bg-slate-50 text-slate-200 opacity-0 group-hover:opacity-100'
-                                            }`}>
-                                            <CheckCircle2 size={24} />
+                                        <div className="text-[11px] text-gray-400 mt-4 p-3 bg-gray-50 rounded-sm italic border border-gray-100 uppercase tracking-tighter">
+                                            *Plans are calculated against your mutual fund collateral. Terms & conditions apply.
                                         </div>
                                     </div>
+                                )}
 
-                                    {plan.cashback > 0 && (
-                                        <div className="mt-5 pt-5 border-t border-indigo-100/50 flex items-center text-[10px] font-black text-indigo-700 uppercase tracking-widest relative z-10">
-                                            <Zap size={14} className="mr-2 fill-indigo-700" />
-                                            ₹{plan.cashback.toLocaleString()} Instant Cashback Applied
+                                {activeTab === 'overview' && (
+                                    <div className="space-y-6">
+                                        <div className="bg-blue-50/50 p-4 border-l-4 border-[#2874f0] rounded-r-sm">
+                                            <p className="text-sm text-gray-700 italic leading-relaxed">
+                                                {product.description}
+                                            </p>
                                         </div>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    </motion.div>
+                                        <div>
+                                            <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                                <Info size={16} className="text-[#2874f0]" /> Key Highlights
+                                            </h3>
+                                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-8">
+                                                {product.highlights.map((h, i) => (
+                                                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
+                                                        <span className="w-1.5 h-1.5 bg-gray-300 rounded-full mt-2 shrink-0"></span>
+                                                        {h}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="mt-auto space-y-6"
-                    >
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="w-full py-6 bg-slate-900 text-white rounded-[32px] font-black text-xl hover:bg-black transition-all shadow-2xl shadow-slate-200 active:scale-[0.98] flex items-center justify-center group overflow-hidden relative"
-                        >
-                            <span className="relative z-10 flex items-center">
-                                Configure Yours
-                                <ArrowLeft size={24} className="ml-3 rotate-180 group-hover:translate-x-2 transition-transform" />
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        </button>
-                        <div className="flex items-center justify-center space-x-6">
-                            <div className="flex items-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                                <ShieldCheck size={14} className="mr-2" /> 256-bit Secure
-                            </div>
-                            <div className="w-1.5 h-1.5 bg-slate-100 rounded-full"></div>
-                            <div className="flex items-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                                <Zap size={14} className="mr-2" /> Instant Approval
+                                {activeTab === 'specs' && (
+                                    <div className="border border-gray-100 rounded-sm">
+                                        {[
+                                            { label: 'Brand', value: product.brand },
+                                            { label: 'Model Name', value: product.name },
+                                            { label: 'Variant', value: product.variant },
+                                            { label: 'Color', value: product.color },
+                                            { label: 'Warranty', value: '1 Year Manufacturer' },
+                                            { label: 'Stock Status', value: 'In Stock' }
+                                        ].map((spec, i) => (
+                                            <div key={i} className="grid grid-cols-4 py-4 px-6 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                                                <span className="text-sm text-gray-500 font-medium">{spec.label}</span>
+                                                <span className="text-sm text-gray-800 font-bold col-span-3">{spec.value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
-            </main>
+            </div>
 
-            {/* Success Modal */}
             {selectedPlan && (
                 <SelectionSummaryModal
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
+                    isOpen={showSummary}
+                    onClose={() => setShowSummary(false)}
                     product={product}
                     plan={selectedPlan}
                 />

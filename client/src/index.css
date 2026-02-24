@@ -1,19 +1,60 @@
 @import "tailwindcss";
 
 @layer base {
-  body {
-    font-family: 'Outfit', 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    @apply transition-colors duration-300;
+  :root {
+    /* Flipkart-inspired Palette */
+    --color-bg: #f1f3f6;
+    --color-surface: #ffffff;
+    --color-primary: #2874f0;
+    /* Flipkart Blue */
+    --color-primary-dark: #1254c7;
+    --color-accent: #fb641b;
+    /* Flipkart Orange */
+    --color-success: #388e3c;
+    --color-text: #212121;
+    --color-text-muted: #878787;
+    --color-border: #e0e0e0;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: 'Outfit', sans-serif;
+  * {
+    box-sizing: border-box;
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--color-bg);
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+
+  /* Utilities */
+  .shadow-flip {
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .16);
   }
 }

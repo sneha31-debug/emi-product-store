@@ -1,235 +1,110 @@
 # 1Fi EMI Product Store
 
-A full-stack e-commerce web app for buying premium smartphones via mutual fund-backed EMI plans.
-Designed with a Flipkart/Amazon-style UI.
+This project is a full-stack e-commerce application designed to facilitate the purchase of premium smartphones through mutual fund-backed EMI plans. The user interface is built to mirror the experience of major e-commerce platforms like Flipkart and Amazon, focusing on clarity and ease of use.
 
-## 🚀 Tech Stack
+## Technical Infrastructure
 
-| Layer    | Technology |
-|----------|-----------|
-| Frontend | React 19, Vite, TypeScript, Tailwind CSS v4, Framer Motion |
-| Backend  | Node.js, Express 5, TypeScript, Prisma ORM v7 |
-| Database | PostgreSQL (via `@prisma/adapter-pg` driver) |
-| Icons    | Lucide React |
-| Fonts    | Outfit, Inter (Google Fonts) |
+The application is built using a modern decoupled architecture.
 
----
+### Core Stack
+- Frontend: React 19, Vite, TypeScript, and Tailwind CSS.
+- Backend: Node.js with Express 5 and TypeScript.
+- Database: PostgreSQL managed through Prisma ORM.
 
-## 🛠️ Setup & Run Instructions
+### UI Components
+- Icons: Lucide React.
+- Typography: Outfit and Inter via Google Fonts.
+- Animations: Framer Motion for subtle transitions and selection feedback.
+
+## Installation and Setup
 
 ### Prerequisites
-- Node.js v18+
-- PostgreSQL running locally (or a hosted connection string)
+Before starting, ensure you have the following installed:
+- Node.js (version 18 or higher)
+- A local PostgreSQL instance
 
-### 1. Clone & Install
+### 1. Repository Setup
+Clone the project and install dependencies for both the client and server.
 
 ```bash
-git clone <repo-url>
+# Navigate to the project root
 cd emi-product-store
 
-# Backend
+# Install server dependencies
 cd server && npm install
 
-# Frontend
+# Install client dependencies
 cd ../client && npm install
 ```
 
-### 2. Database Setup
+### 2. Database Configuration
+Create a new PostgreSQL database for the project.
 
-Create a PostgreSQL database:
 ```sql
 CREATE DATABASE emi_product_db;
 ```
 
-### 3. Backend Environment
+### 3. Environment Configuration
+Create a .env file in the server directory with your connection details.
 
-Create `server/.env`:
 ```env
-DATABASE_URL="postgresql://YOUR_USERNAME:YOUR_PASSWORD@localhost:5432/emi_product_db?schema=public"
-PORT=5001
+DATABASE_URL="postgresql://username:password@localhost:5432/emi_product_db?schema=public"
+PORT=5002
 ```
 
-### 4. Migrate & Seed Database
+In the client directory, ensure your .env file points to the correct backend port.
+
+```env
+VITE_API_URL=http://localhost:5002/api
+```
+
+### 4. Database Migration and Seeding
+Initialize the database tables and populate them with initial product data and EMI plans.
 
 ```bash
 cd server
-npx prisma generate      # generate Prisma client
-npx prisma db push       # create tables from schema
-npm run seed             # populate with 4 products + 12 variants + EMI plans
+npx prisma generate
+npx prisma db push
+npm run seed
 ```
 
-### 5. Run Development Servers
+### 5. Running the Application
+You will need to run the backend and frontend simultaneously in separate terminals.
 
-Terminal 1 — Backend:
+**Backend Terminal**
 ```bash
 cd server && npm run dev
-# → Server running on http://localhost:5001
 ```
 
-Terminal 2 — Frontend:
+**Frontend Terminal**
 ```bash
 cd client && npm run dev
-# → App running on http://localhost:5173
 ```
 
----
+## API Documentation
 
-## 📡 API Endpoints
+The server exposes several endpoints for managing and retrieving product data.
 
-### `GET /api/products`
-Returns all product variants with their EMI plans.
+### Product List
+`GET /api/products`
+Retrieves all product variants along with their associated EMI plans.
 
-```bash
-curl http://localhost:5001/api/products
-```
+### Product Specifics by Slug
+`GET /api/products/slug/:slug`
+Fetches a single product using its URL-friendly slug. This endpoint also returns all other variants of the same product family for the variant switcher.
 
-<details>
-<summary>Example Response</summary>
+### Product Specifics by ID
+`GET /api/products/:id`
+Retrieves product details using a numeric primary key.
 
-```json
-[
-  {
-    "id": 1,
-    "name": "Apple iPhone 17 Pro",
-    "slug": "iphone-17-pro-256gb-natural-titanium",
-    "brand": "Apple",
-    "variant": "256 GB",
-    "color": "Natural Titanium",
-    "mrp": 134900,
-    "price": 129900,
-    "imageUrl": "https://...",
-    "description": "iPhone 17 Pro. Forged in titanium...",
-    "highlights": ["6.3-inch Super Retina XDR...", "A19 Pro chip..."],
-    "emiPlans": [
-      { "id": 1, "tenure": 3,  "monthlyAmount": 43300, "interestRate": 0,    "cashback": 2000 },
-      { "id": 2, "tenure": 6,  "monthlyAmount": 21650, "interestRate": 0,    "cashback": 1500 },
-      { "id": 3, "tenure": 12, "monthlyAmount": 11990, "interestRate": 10.5, "cashback": 500  }
-    ]
-  }
-]
-```
-</details>
+### Product Families
+`GET /api/products/name/:name`
+Returns all variants associated with a specific product family name.
 
----
+## Core Features
 
-### `GET /api/products/slug/:slug`
-Returns a single product by its URL slug, plus all sibling variants.
-
-```bash
-curl http://localhost:5001/api/products/slug/iphone-17-pro-256gb-natural-titanium
-```
-
-<details>
-<summary>Example Response</summary>
-
-```json
-{
-  "id": 1,
-  "name": "Apple iPhone 17 Pro",
-  "slug": "iphone-17-pro-256gb-natural-titanium",
-  "brand": "Apple",
-  "variant": "256 GB",
-  "color": "Natural Titanium",
-  "mrp": 134900,
-  "price": 129900,
-  "emiPlans": [...],
-  "variants": [
-    { "id": 1, "slug": "iphone-17-pro-256gb-natural-titanium", "variant": "256 GB", "color": "Natural Titanium", "price": 129900, "imageUrl": "..." },
-    { "id": 2, "slug": "iphone-17-pro-256gb-blue-titanium", "variant": "256 GB", "color": "Blue Titanium", "price": 129900, "imageUrl": "..." },
-    { "id": 3, "slug": "iphone-17-pro-512gb-natural-titanium", "variant": "512 GB", "color": "Natural Titanium", "price": 149900, "imageUrl": "..." },
-    { "id": 4, "slug": "iphone-17-pro-512gb-black-titanium", "variant": "512 GB", "color": "Black Titanium", "price": 149900, "imageUrl": "..." }
-  ]
-}
-```
-</details>
-
----
-
-### `GET /api/products/:id`
-Returns a single product by numeric ID (including variants).
-
-```bash
-curl http://localhost:5001/api/products/1
-```
-
----
-
-### `GET /api/products/name/:name`
-Returns all variants of a product by product name (URL-encoded).
-
-```bash
-curl "http://localhost:5001/api/products/name/Apple%20iPhone%2017%20Pro"
-```
-
----
-
-## 🗄️ Database Schema
-
-```prisma
-model Product {
-  id          Int       @id @default(autoincrement())
-  name        String
-  slug        String    @unique
-  brand       String
-  variant     String    // e.g., "256 GB"
-  color       String    // e.g., "Natural Titanium"
-  mrp         Float
-  price       Float
-  imageUrl    String
-  description String    @default("")
-  highlights  String[]  // array of highlight bullet strings
-  emiPlans    EMIPlan[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model EMIPlan {
-  id            Int      @id @default(autoincrement())
-  monthlyAmount Float
-  tenure        Int      // months
-  interestRate  Float    // 0 = no-cost EMI
-  cashback      Float    @default(0)
-  productId     Int
-  product       Product  @relation(fields: [productId], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-```
-
----
-
-## 📦 Seed Data
-
-4 product families, 12 total variants:
-
-| Product | Variants | Storage Options |
-|---------|----------|----------------|
-| Apple iPhone 17 Pro | 4 | 256 GB, 512 GB |
-| Samsung Galaxy S24 Ultra | 3 | 256 GB, 512 GB |
-| Google Pixel 9 Pro | 3 | 128 GB, 256 GB |
-| OnePlus 12 | 2 | 256 GB, 512 GB |
-
-Each variant has **5 EMI plans** (3m, 6m, 9m with 0% interest; 12m at 10.5%; 24m at 12.5%).
-
----
-
-## 🌐 Frontend Routes
-
-| URL | Page |
-|-----|------|
-| `/` | Product catalog (grouped by name, brand filter) |
-| `/products/:slug` | Product detail (EMI selection, variant switcher) |
-
----
-
-## ✨ Features
-
-- 📱 **Unique product URLs** via slug (e.g., `/products/iphone-17-pro-256gb-natural-titanium`)
-- 🎛️ **Variant selector** — toggle storage and color, page navigates to new slug
-- 💳 **EMI plan table** — tenure, monthly amount, interest rate, cashback
-- 📊 **Total payable** calculated in plan selection modal
-- 🔍 **Brand filter chips** (All / Apple / Samsung / Google / OnePlus)
-- 📝 **Product highlights** listed with checkmarks
-- 📱 **Responsive** — sticky mobile CTA bar, tablet/desktop layout
-- 💀 **Loading skeletons** (not a plain spinner)
-- 🎨 **Flipkart-style UI** — blue header, category strip, card grid, trust badges
+- Descriptive URL Structure: Uses brand and family names to create SEO-friendly paths like /apple-iphone-17-pro-apple/slug.
+- Intelligent Variant Selection: Users can switch between colors and storage capacities. The application maintains visual state and updates the URL without a full page reload.
+- EMI Plan Integration: Dynamic calculation of monthly installments based on tenure, interest rates, and available cashback.
+- Performance Driven UI: Implements soft loading states and skeletons to ensure the interface feels responsive during data fetches.
+- Responsive Design: Optimized for both mobile and desktop users, including a specialized sticky call-to-action bar for mobile devices.
